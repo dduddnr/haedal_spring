@@ -4,6 +4,7 @@ import com.example.haedal.domain.User;
 import com.example.haedal.dto.UserDetailResponseDto;
 import com.example.haedal.dto.UserSimpleResponseDto;
 import com.example.haedal.dto.UserUpdateRequestDto;
+import com.example.haedal.repository.PostRepository;
 import com.example.haedal.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -15,10 +16,14 @@ import java.util.List;
 @Service
 public class UserService {
     private final UserRepository userRepository;
+    private final ImageService imageService;
+    private final PostRepository postRepository;
 
     @Autowired
-    public UserService(UserRepository userRepository) {
+    public UserService(UserRepository userRepository, ImageService imageService, PostRepository postRepository) {
         this.userRepository = userRepository;
+        this.imageService = imageService;
+        this.postRepository = postRepository;
     }
 
     public UserSimpleResponseDto saveUser(User newUser) {
@@ -76,30 +81,35 @@ public class UserService {
         return convertUserToDetailDto(currentUser, targetUser);
     }
 
-    public UserDetailResponseDto convertUserToDetailDto(User currentUser, User targetUser) {
-        return new UserDetailResponseDto(
-                targetUser.getId(),
-                targetUser.getUsername(),
-                targetUser.getName(),
-                null,
-                false,
-                targetUser.getBio(),
-                targetUser.getJoinedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd hh:mm")),
-                0L,
-                0L,
-                0L
-        );
-    }
-
-
     public UserSimpleResponseDto convertUserToSimpleDto(User currentUser, User targetUser) {
+        String imageUrl = targetUser.getImageUrl();
+        String imageData = imageService.encodeImageToBase64(System.getProperty("user.dir") + "/src/main/resources/static/" + imageUrl);
 
         return new UserSimpleResponseDto(
                 targetUser.getId(),
                 targetUser.getUsername(),
                 targetUser.getName(),
-                null,
+                imageData,
                 false
-                );
+        );
+    }
+
+    public UserDetailResponseDto convertUserToDetailDto(User currentUser, User targetUser) {
+        String imageUrl = targetUser.getImageUrl();
+        String imageData = imageService.encodeImageToBase64(System.getProperty("user.dir") + "/src/main/resources/static/" + imageUrl);
+
+
+        return new UserDetailResponseDto(
+                targetUser.getId(),
+                targetUser.getUsername(),
+                targetUser.getName(),
+                imageData,
+                false,
+                targetUser.getBio(),
+                targetUser.getJoinedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd hh:mm")),
+                postRepository.countByUser(targetUser),
+                0L,
+                0L
+        );
     }
 }
