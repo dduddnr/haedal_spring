@@ -3,11 +3,14 @@ package com.example.haedal.domain;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Getter
+@Setter
 @NoArgsConstructor
 public class Post {
     @Id
@@ -27,8 +30,8 @@ public class Post {
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
-//    @OneToMany(mappedBy = "post")
-//    private List<Like> likes;
+    @OneToMany(mappedBy = "post")
+    private List<Like> likes;
 
     public Post(User user, String content, String imageUrl) {
         this.user = user;
